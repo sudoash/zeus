@@ -55,8 +55,8 @@ checkMachineRunning () {
 setPropDefaults () {
   # Gather the env vars we need to run.
   [ -f $PWD/Zeusfile ] && source $PWD/Zeusfile;
-  [ -z "$ZEUS_NAME" ] && echoAbort "ZEUS_NAME missing. Please set in Zeusfile or ENV."
-  [ -z "$ZEUS_DOMAIN" ] && echoAbort "Need to set ZEUS_DOMAIN. Please set in Zeusfile or ENV."
+  [ -z "$ZEUS_NAME" ] && echoAbort "Please set ZEUS_NAME in Zeusfile or ENV."
+  [ -z "$ZEUS_DOMAIN" ] && echoAbort "Please set ZEUS_DOMAIN in Zeusfile or ENV."
   [ -z "$ZEUS_SHELL" ] && ZEUS_SHELL="bash";
   [ -z "$ZEUS_VIRTUALBOX_MEMORY" ] && ZEUS_VIRTUALBOX_MEMORY="1024"
 
