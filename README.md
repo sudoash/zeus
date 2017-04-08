@@ -38,6 +38,7 @@ Commands:
 
  - Multiple docker-machine drivers
  - Linux support
+ - Autocomplete commands
 
 ## Credits
 
