@@ -23,7 +23,7 @@ ZEUS_DOMAIN=local.dev
 ```
 zeus - the utility wrapper for docker, docker-compose, docker-machine and docker-machine-nfs
 
-Usage: /Users/ashley/bin/zeus <command>
+Usage: /usr/local/bin/zeus <command>
 
 Commands:
   init             Initialises Zeus and creates a Zeusfile
