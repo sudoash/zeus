@@ -9,6 +9,19 @@ Zeus is a utility wrapper for Docker on macOS / OS X. It combines [docker](https
   - Docker Machine
   - Docker Machine NFS
 
+## Installation
+
+### Homebrew
+
+```
+brew tap sudoash/sudoash
+brew install zeus
+```
+
+### Standalone
+
+Download the [zeus](https://raw.githubusercontent.com/sudoash/zeus/master/zeus) bash script and put in your `$PATH`.
+
 ## Getting started
 
 Before you can use Zeus, you need to create a `Zeusfile`. The easiest way to create one is by using `zeus init`. You should end up with something like this:
