@@ -35,6 +35,7 @@ ZEUS_DOMAIN=local.dev
 ## Usage
 ```
 zeus - the utility wrapper for docker, docker-compose, docker-machine and docker-machine-nfs
+zeus version 0.1
 
 Usage: /usr/local/bin/zeus <command>
 
@@ -44,7 +45,9 @@ Commands:
   up               Starts the Docker containers
   down             Removes the Docker containers
   reload           Recreates the Docker containers
+  list             Lists Docker containers
   ssh <container>  Connect via SSH to the specified container
+  info             Displays info for your Docker machine
  ```
 
 ## Todos
@@ -60,4 +63,3 @@ Thanks to the guys behind these amazing Docker tools!
 ## License
 
 GNU General Public License v3.0
-
