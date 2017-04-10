@@ -13,7 +13,7 @@ logo () {
 }
 
 version () {
-  echo "zeus version 0.1"
+  echo "zeus version 0.2"
 }
 
 usage () {

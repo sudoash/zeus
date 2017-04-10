@@ -35,7 +35,7 @@ ZEUS_DOMAIN=local.dev
 ## Usage
 ```
 zeus - the utility wrapper for docker, docker-compose, docker-machine and docker-machine-nfs
-zeus version 0.1
+zeus version 0.2
 
 Usage: /usr/local/bin/zeus <command>
 
