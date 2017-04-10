@@ -8,7 +8,12 @@ RESET="$(tput sgr0)"
 
 logo () {
   echo "zeus - the utility wrapper for docker, docker-compose, docker-machine and docker-machine-nfs"
+  version
   echo ""
+}
+
+version () {
+  echo "zeus version 0.2"
 }
 
 usage () {
@@ -61,7 +66,7 @@ setPropDefaults () {
   [ -z "$ZEUS_VIRTUALBOX_MEMORY" ] && ZEUS_VIRTUALBOX_MEMORY="1024"
 
   [ "$(checkMachineRunning ${ZEUS_NAME})" = "true" ] && {
-    ZEUS_MACHINE_RUNNING="yes"
+    ZEUS_MACHINE_RUNNING="true"
   }
 }
 
@@ -102,6 +107,10 @@ EOL
   exit
 }
 
+zeusVersion () {
+  version && exit
+}
+
 dockerEvalEnv () {
   [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "Machine ${ZEUS_NAME} does not exist."
 
@@ -109,6 +118,21 @@ dockerEvalEnv () {
   [ -z "$ZEUS_MACHINE_ACTIVE" ] && {
     eval $(docker-machine env ${ZEUS_NAME})
     ZEUS_MACHINE_ACTIVE="true"
+  }
+}
+
+dockerMachineStart () {
+  [ -z "$ZEUS_MACHINE_RUNNING" ] && {
+    docker-machine start ${ZEUS_NAME}
+    ZEUS_MACHINE_RUNNING="true"
+  }
+}
+
+dockerMachineStop() {
+  [ ! -z $ZEUS_MACHINE_RUNNING ] && {
+    docker-machine stop ${ZEUS_NAME}
+    unset ZEUS_MACHINE_RUNNING
+    unset ZEUS_MACHINE_ACTIVE
   }
 }
 
@@ -120,7 +144,7 @@ dockerCreate () {
 
   read -p "Would you like to automatically add this to your hosts file? (y/n) " HOSTS_AUTO_UPDATE
   case "$HOSTS_AUTO_UPDATE" in
-    y|Y ) updateHosts;;
+    y|Y ) updateHosts ;;
   esac
 }
 
@@ -130,6 +154,7 @@ updateHosts () {
 }
 
 dockerStart () {
+  dockerMachineStart
   dockerEvalEnv
 
   echo "${YELLOW}Starting containers..${RESET}"
@@ -138,13 +163,17 @@ dockerStart () {
 }
 
 dockerStop () {
+  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "Machine ${ZEUS_NAME} already off!"
+
   dockerEvalEnv
 
-  echo "${YELLOW}Removing containers..${RESET}"
+  echo "${YELLOW}Stopping containers..${RESET}"
 
   [[ $(docker-compose ps -q) ]] && docker-compose down;
 
-  echo "${GREEN}Removed!${RESET}"
+  dockerMachineStop
+
+  echo "${GREEN}Stopped!${RESET}"
 }
 
 dockerInfo () {
@@ -177,12 +206,13 @@ dockerSsh () {
 [ $# -eq 0 ] && usage
 
 [ "$1" == "init" ] && zeusInit
+[ "$1" == "--version" -o "$1" == "-v" ] && zeusVersion
 
 ensureCompatible
 setPropDefaults
 
 case "$1" in
-	create)
+  create)
     dockerCreate ;;
   up)
     dockerStart ;;
@@ -197,5 +227,5 @@ case "$1" in
   ssh)
     dockerSsh "$2" ;;
   *)
-		usage ;;
+    usage ;;
 esac
