@@ -13,7 +13,7 @@ logo () {
 }
 
 version () {
-  echo "zeus version 0.2"
+  echo "zeus version 0.3"
 }
 
 usage () {
@@ -31,6 +31,7 @@ ${YELLOW}Commands:${RESET}
   ${GREEN}list             ${RESET}Lists Docker containers
   ${GREEN}ssh <container>  ${RESET}Connect via SSH to the specified container
   ${GREEN}info             ${RESET}Displays info for your Docker machine
+  ${GREEN}destroy          ${RESET}Removes the Docker machine
 EOF
   exit
 }
@@ -101,6 +102,9 @@ ZEUS_DOMAIN=$ZEUS_DOMAIN
 
 # The default shell to run when SSH'ing into the container
 ZEUS_SHELL=bash
+
+# The default container to SSH into when running zeus ssh with no container argument
+#ZEUS_DEFAULT_SSH_CONTAINER=
 EOL
 
   echoSuccess "Created Zeusfile!"
@@ -134,6 +138,12 @@ dockerMachineStop() {
     unset ZEUS_MACHINE_RUNNING
     unset ZEUS_MACHINE_ACTIVE
   }
+}
+
+dockerMachineDestroy () {
+  docker-machine rm ${ZEUS_NAME}
+  unset ZEUS_MACHINE_RUNNING
+  unset ZEUS_MACHINE_ACTIVE
 }
 
 dockerCreate () {
@@ -195,6 +205,10 @@ dockerList () {
 dockerSsh () {
   CONTAINER="$1"
   if [[ "${CONTAINER}" == "" ]]; then
+      CONTAINER=$(echo $ZEUS_DEFAULT_SSH_CONTAINER)
+  fi
+
+  if [[ "${CONTAINER}" == "" ]]; then
     echoAbort "You must provide a container name or ID. Run 'list' to identify your containers."
   fi
 
@@ -226,6 +240,8 @@ case "$1" in
     dockerList ;;
   ssh)
     dockerSsh "$2" ;;
+  destroy)
+    dockerMachineDestroy ;;
   *)
     usage ;;
 esac
