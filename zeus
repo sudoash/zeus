@@ -32,6 +32,7 @@ ${YELLOW}Commands:${RESET}
   ${GREEN}ssh <container>  ${RESET}Connect via SSH to the specified container
   ${GREEN}info             ${RESET}Displays info for your Docker machine
   ${GREEN}destroy          ${RESET}Removes the Docker machine
+  ${GREEN}fix              ${RESET}Attempts to fix any SSL or NFS issues
 EOF
   exit
 }
@@ -217,6 +218,21 @@ dockerSsh () {
   docker exec -it ${CONTAINER} ${ZEUS_SHELL}
 }
 
+dockerFix () {
+  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "The docker-machine must be running."
+
+  docker-machine regenerate-certs ${ZEUS_NAME} -f
+  docker-machine-nfs ${ZEUS_NAME}
+
+  echo "${YELLOW}Restarting nfsd -- sudo may be required...${RESET}"
+  sudo nfsd restart
+  echo "${GREEN}Success!${RESET}"
+
+  dockerStop && dockerStart
+
+  dockerInfo
+}
+
 [ $# -eq 0 ] && usage
 
 [ "$1" == "init" ] && zeusInit
@@ -242,6 +258,8 @@ case "$1" in
     dockerSsh "$2" ;;
   destroy)
     dockerMachineDestroy ;;
+  fix)
+    dockerFix ;;
   *)
     usage ;;
 esac
