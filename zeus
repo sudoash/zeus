@@ -29,7 +29,7 @@ ${YELLOW}Commands:${RESET}
   ${GREEN}down             ${RESET}Removes the Docker containers
   ${GREEN}reload           ${RESET}Recreates the Docker containers
   ${GREEN}list             ${RESET}Lists Docker containers
-  ${GREEN}ssh <container>  ${RESET}Connect via SSH to the specified container
+  ${GREEN}ssh [container]  ${RESET}Connect via SSH to the specified container
   ${GREEN}info             ${RESET}Displays info for your Docker machine
   ${GREEN}destroy          ${RESET}Removes the Docker machine
   ${GREEN}fix              ${RESET}Attempts to fix any SSL or NFS issues
