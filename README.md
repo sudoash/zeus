@@ -14,8 +14,7 @@ Zeus is a utility wrapper for Docker on macOS / OS X. It combines [docker](https
 ### Homebrew
 
 ```
-brew tap sudoash/sudoash
-brew install zeus
+brew install sudoash/tap/zeus
 ```
 
 ### Standalone
