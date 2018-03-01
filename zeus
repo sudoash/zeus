@@ -13,7 +13,7 @@ logo () {
 }
 
 version () {
-  echo "zeus version 0.3"
+  echo "zeus version 0.4"
 }
 
 usage () {
@@ -149,7 +149,7 @@ dockerMachineDestroy () {
 
 dockerCreate () {
   docker-machine create --driver virtualbox --virtualbox-memory ${ZEUS_VIRTUALBOX_MEMORY} ${ZEUS_NAME}
-  docker-machine-nfs ${ZEUS_NAME}
+  docker-machine-nfs ${ZEUS_NAME} -s="$PWD"
 
   dockerInfo
 
@@ -222,7 +222,7 @@ dockerFix () {
   [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "The docker-machine must be running."
 
   docker-machine regenerate-certs ${ZEUS_NAME} -f
-  docker-machine-nfs ${ZEUS_NAME}
+  docker-machine-nfs ${ZEUS_NAME} -s="$PWD"
 
   echo "${YELLOW}Restarting nfsd -- sudo may be required...${RESET}"
   sudo nfsd restart

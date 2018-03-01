@@ -40,7 +40,7 @@ ZEUS_SHELL=bash
 ## Usage
 ```
 zeus - the utility wrapper for docker, docker-compose, docker-machine and docker-machine-nfs
-zeus version 0.3
+zeus version 0.4
 
 Usage: /usr/local/bin/zeus <command>
 
