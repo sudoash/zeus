@@ -13,7 +13,7 @@ logo () {
 }
 
 version () {
-  echo "zeus version 0.4"
+  echo "zeus version 0.5"
 }
 
 usage () {
@@ -215,7 +215,7 @@ dockerSsh () {
 
   dockerEvalEnv
 
-  docker exec -it ${CONTAINER} ${ZEUS_SHELL}
+  docker-compose run --rm ${CONTAINER} ${ZEUS_SHELL}
 }
 
 dockerFix () {
