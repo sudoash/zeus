@@ -4,6 +4,7 @@
 RED="$(tput setaf 1)"
 GREEN="$(tput setaf 2)"
 YELLOW="$(tput setaf 3)"
+BLUE="$(tput setaf 4)"
 RESET="$(tput sgr0)"
 
 logo () {
@@ -13,7 +14,7 @@ logo () {
 }
 
 version () {
-  echo "zeus version 0.5"
+  echo "zeus version 1.0.0"
 }
 
 usage () {
@@ -23,30 +24,48 @@ usage () {
 Usage: $0 <command>
 
 ${YELLOW}Commands:${RESET}
-  ${GREEN}init             ${RESET}Initialises Zeus and creates a Zeusfile
-  ${GREEN}create           ${RESET}Creates the Docker machine for the first time
-  ${GREEN}up               ${RESET}Starts the Docker containers
-  ${GREEN}down             ${RESET}Removes the Docker containers
-  ${GREEN}reload           ${RESET}Recreates the Docker containers
-  ${GREEN}list             ${RESET}Lists Docker containers
-  ${GREEN}ssh [container]  ${RESET}Connect via SSH to the specified container
-  ${GREEN}info             ${RESET}Displays info for your Docker machine
-  ${GREEN}destroy          ${RESET}Removes the Docker machine
-  ${GREEN}fix              ${RESET}Attempts to fix any SSL or NFS issues
+  ${GREEN}init                    ${RESET}Initialises Zeus and creates a Zeusfile
+  ${GREEN}create                  ${RESET}Creates the Docker machine for the first time
+  ${GREEN}up                      ${RESET}Starts the Docker containers
+  ${GREEN}down                    ${RESET}Removes the Docker containers
+  ${GREEN}reload                  ${RESET}Recreates the Docker containers
+  ${GREEN}stop                    ${RESET}Stops the Docker machine
+  ${GREEN}start                   ${RESET}Starts the Docker machine
+  ${GREEN}restart                 ${RESET}Restarts the Docker machine
+  ${GREEN}list                    ${RESET}Lists Docker containers
+  ${GREEN}ssh [container]         ${RESET}Connect via SSH to the specified container
+  ${GREEN}info                    ${RESET}Displays info for your Docker machine
+  ${GREEN}destroy                 ${RESET}Removes the Docker machine
+  ${GREEN}fix                     ${RESET}Attempts to fix any SSL or NFS issues
+  ${GREEN}run <service> <command> ${RESET}Runs a command from within the specified container
 EOF
   exit
 }
 
+echoBlank () {
+  echo ""
+}
+
+echoZeus () {
+  echo -e "${BLUE}[zeus]${RESET} $1"
+}
+
 echoError () {
-  echo -e "${RED}$1 ${RESET}"
+  echoZeus "${RED}$1${RESET}"
+  echoBlank
+}
+
+echoSuccess () {
+  echoZeus "${GREEN}$1${RESET}"
+  echoBlank
+}
+
+echoPending() {
+    echoZeus "${YELLOW}$1${RESET}"
 }
 
 echoAbort () {
   echoError "$1\n\nAborting.."; exit 1;
-}
-
-echoSuccess () {
-  echo -e "${GREEN}$1${RESET}"
 }
 
 checkMachineRunning () {
@@ -165,12 +184,13 @@ updateHosts () {
 }
 
 dockerStart () {
+  echoPending "Starting machine.."
   dockerMachineStart
+  echoSuccess "Started machine."
+
   dockerEvalEnv
 
-  echo "${YELLOW}Starting containers..${RESET}"
-  docker-compose up -d
-  echo "${GREEN}Started!${RESET}"
+  dockerUp
 }
 
 dockerStop () {
@@ -178,23 +198,45 @@ dockerStop () {
 
   dockerEvalEnv
 
-  echo "${YELLOW}Stopping containers..${RESET}"
+  echoPending "Stopping machine.."
 
   [[ $(docker-compose ps -q) ]] && docker-compose down;
 
   dockerMachineStop
 
-  echo "${GREEN}Stopped!${RESET}"
+  echoSuccess "Stopped machine."
+}
+
+dockerUp () {
+  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "Machine $ZEUS_NAME must be running!"
+
+  dockerEvalEnv
+
+  echoPending "Starting containers.."
+  docker-compose up -d
+  echoSuccess "Started containers."
+}
+
+dockerDown () {
+  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "Machine $ZEUS_NAME must be running!"
+
+  dockerEvalEnv
+
+  echoPending "Stopping containers.."
+
+  [[ $(docker-compose ps -q) ]] && docker-compose down;
+
+  echoSuccess "Stopped containers."
 }
 
 dockerInfo () {
   IP=$(docker-machine ip ${ZEUS_NAME})
   STATUS=$(docker-machine status ${ZEUS_NAME})
 
-  echo "${GREEN}Virtual machine name: ${YELLOW} ${ZEUS_NAME} ${RESET}"
-  echo "${GREEN}Domain: ${YELLOW} ${ZEUS_DOMAIN} ${RESET}"
-  echo "${GREEN}IP Address: ${YELLOW} ${IP} ${RESET}"
-  echo "${GREEN}Status: ${YELLOW} ${STATUS} ${RESET}"
+  echo "${GREEN}Virtual machine name: ${YELLOW}${ZEUS_NAME}${RESET}"
+  echo "${GREEN}Domain: ${YELLOW}${ZEUS_DOMAIN}${RESET}"
+  echo "${GREEN}IP Address: ${YELLOW}${IP}${RESET}"
+  echo "${GREEN}Status: ${YELLOW}${STATUS}${RESET}"
 }
 
 dockerList () {
@@ -224,13 +266,47 @@ dockerFix () {
   docker-machine regenerate-certs ${ZEUS_NAME} -f
   docker-machine-nfs ${ZEUS_NAME} -s="$PWD"
 
-  echo "${YELLOW}Restarting nfsd -- sudo may be required...${RESET}"
+  echoPending "Restarting nfsd -- sudo may be required..."
   sudo nfsd restart
-  echo "${GREEN}Success!${RESET}"
+  echoSuccess "Successful."
 
   dockerStop && dockerStart
 
   dockerInfo
+}
+
+dockerEnv () {
+  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "The docker-machine must be running."
+
+  docker-machine env "${ZEUS_NAME}"
+}
+
+dockerRun() {
+  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "The docker-machine must be running."
+
+  CONTAINER="$1"
+  if [[ "$CONTAINER" == "" ]]; then
+    CONTAINER=$(echo $ZEUS_DEFAULT_SSH_CONTAINER)
+  fi
+
+  if [[ "$CONTAINER" == "" ]]; then
+    echoAbort "You must provide a container name or ID. Run 'list' to identify your containers."
+  fi
+
+  dockerEvalEnv
+
+  if ! docker-compose ps --services | grep "$CONTAINER" > /dev/null; then
+    echoAbort "Container $CONTAINER was not found."
+  fi
+
+  COMMAND="$2"
+  if [[ "$COMMAND" == "" ]]; then
+    echoAbort "You must provide a command to run."
+  fi
+
+  echoPending "$CONTAINER >: $COMMAND"
+
+  docker-compose run --rm ${CONTAINER} ${COMMAND}
 }
 
 [ $# -eq 0 ] && usage
@@ -244,12 +320,16 @@ setPropDefaults
 case "$1" in
   create)
     dockerCreate ;;
-  up)
+  up|start)
     dockerStart ;;
   down)
+    dockerDown ;;
+  stop)
     dockerStop ;;
-  reload)
+  restart)
     dockerStop && dockerStart ;;
+  reload)
+    dockerDown && dockerUp ;;
   info)
     dockerInfo ;;
   list)
@@ -260,6 +340,13 @@ case "$1" in
     dockerMachineDestroy ;;
   fix)
     dockerFix ;;
+  env)
+    dockerEnv ;;
+  run)
+    container=$2; shift; shift
+    args=$@
+
+    dockerRun "$container" "$args" ;;
   *)
     usage ;;
 esac

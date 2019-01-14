@@ -40,21 +40,25 @@ ZEUS_SHELL=bash
 ## Usage
 ```
 zeus - the utility wrapper for docker, docker-compose, docker-machine and docker-machine-nfs
-zeus version 0.5
+zeus version 1.0.0
 
 Usage: /usr/local/bin/zeus <command>
 
 Commands:
-  init             Initialises Zeus and creates a Zeusfile
-  create           Creates the Docker machine for the first time
-  up               Starts the Docker containers
-  down             Removes the Docker containers
-  reload           Recreates the Docker containers
-  list             Lists Docker containers
-  ssh [container]  Connect via SSH to the specified container
-  info             Displays info for your Docker machine
-  destroy          Removes the Docker machine
-  fix              Attempts to fix any SSL or NFS issues
+  init                    Initialises Zeus and creates a Zeusfile
+  create                  Creates the Docker machine for the first time
+  up                      Starts the Docker containers
+  down                    Removes the Docker containers
+  reload                  Recreates the Docker containers
+  stop                    Stops the Docker machine
+  start                   Starts the Docker machine
+  restart                 Restarts the Docker machine
+  list                    Lists Docker containers
+  ssh [container]         Connect via SSH to the specified container
+  info                    Displays info for your Docker machine
+  destroy                 Removes the Docker machine
+  fix                     Attempts to fix any SSL or NFS issues
+  run <service> <command> Runs a command from within the specified container
  ```
 
 ## Todos
