@@ -43,6 +43,10 @@ EOF
   exit
 }
 
+green () {
+  return "${GREEN}$1${RESET}"
+}
+
 echoGreen () {
   echoZeus "${GREEN}$1${RESET}"
 }
@@ -78,7 +82,7 @@ echoAbort () {
 }
 
 checkMachineRunning () {
-  machine_state=$(docker-machine status $1)
+  machine_state=$(docker-machine status $1 2> /dev/null)
 
   if [ "Running" != "${machine_state}" ]; then
     echo "false"; return
@@ -176,7 +180,24 @@ dockerMachineDestroy () {
 }
 
 dockerCreate () {
+  echoPending "Creating new Docker environment.."
+
+  if command -v docker-machine-ipconfig > /dev/null; then
+    SOME_TEXT=$(echoZeus "Would you like to set a static IP with \`docker-machine-ipconfig\`? [none] ")
+
+    read -p "$SOME_TEXT" ZEUS_STATIC_IP
+  fi
+
+  [ ! -z "$ZEUS_STATIC_IP" ] && {
+    echoPending "Creating $ZEUS_NAME with IP address $ZEUS_STATIC_IP."
+  }
+
   docker-machine create --driver virtualbox --virtualbox-memory ${ZEUS_VIRTUALBOX_MEMORY} ${ZEUS_NAME}
+
+  [ ! -z "$ZEUS_STATIC_IP" ] && {
+    docker-machine-ipconfig static ${ZEUS_NAME} ${ZEUS_STATIC_IP}
+  }
+
   docker-machine-nfs ${ZEUS_NAME} -s="$PWD"
 
   dockerInfo
@@ -185,6 +206,8 @@ dockerCreate () {
   case "$HOSTS_AUTO_UPDATE" in
     y|Y ) updateHosts ;;
   esac
+
+  echoSuccess "Successfully created new Docker environment."
 }
 
 updateHosts () {

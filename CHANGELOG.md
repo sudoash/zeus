@@ -6,7 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- `update` to fetch latest Docker images 
+- `update` to fetch latest Docker images
+- Ability to set a static IP during `create` if [docker-machine-ipconfig](https://github.com/fivestars/docker-machine-ipconfig) is installed 
 
 ### Changed
 - Improved speed when checking if Docker machine is running
