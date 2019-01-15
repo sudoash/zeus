@@ -183,9 +183,9 @@ dockerCreate () {
   echoPending "Creating new Docker environment.."
 
   if command -v docker-machine-ipconfig > /dev/null; then
-    SOME_TEXT=$(echoZeus "Would you like to set a static IP with \`docker-machine-ipconfig\`? [none] ")
+    PROMPT_TEXT=$(echoZeus "Would you like to set a static IP with \`docker-machine-ipconfig\`? [none] ")
 
-    read -p "$SOME_TEXT" ZEUS_STATIC_IP
+    read -p "$PROMPT_TEXT" ZEUS_STATIC_IP
   fi
 
   [ ! -z "$ZEUS_STATIC_IP" ] && {
