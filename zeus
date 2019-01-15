@@ -14,7 +14,7 @@ logo () {
 }
 
 version () {
-  echo "zeus version 1.0.0"
+  echo "zeus version 1.0.1"
 }
 
 usage () {
