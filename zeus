@@ -14,7 +14,7 @@ logo () {
 }
 
 version () {
-  echo "zeus version 1.0.1"
+  echo "zeus version 1.1.0"
 }
 
 usage () {
@@ -24,20 +24,21 @@ usage () {
 Usage: $0 <command>
 
 ${YELLOW}Commands:${RESET}
-  ${GREEN}init                    ${RESET}Initialises Zeus and creates a Zeusfile
-  ${GREEN}create                  ${RESET}Creates the Docker machine for the first time
-  ${GREEN}up                      ${RESET}Starts the Docker containers
-  ${GREEN}down                    ${RESET}Removes the Docker containers
-  ${GREEN}reload                  ${RESET}Recreates the Docker containers
-  ${GREEN}stop                    ${RESET}Stops the Docker machine
-  ${GREEN}start                   ${RESET}Starts the Docker machine
-  ${GREEN}restart                 ${RESET}Restarts the Docker machine
-  ${GREEN}list                    ${RESET}Lists Docker containers
-  ${GREEN}ssh [container]         ${RESET}Connect via SSH to the specified container
-  ${GREEN}info                    ${RESET}Displays info for your Docker machine
-  ${GREEN}destroy                 ${RESET}Removes the Docker machine
-  ${GREEN}fix                     ${RESET}Attempts to fix any SSL or NFS issues
-  ${GREEN}run <service> <command> ${RESET}Runs a command from within the specified container
+  ${GREEN}init                      ${RESET}Initialises Zeus and creates a Zeusfile
+  ${GREEN}create                    ${RESET}Creates the Docker machine for the first time
+  ${GREEN}up                        ${RESET}Starts the Docker containers
+  ${GREEN}down                      ${RESET}Removes the Docker containers
+  ${GREEN}reload                    ${RESET}Recreates the Docker containers
+  ${GREEN}stop                      ${RESET}Stops the Docker machine
+  ${GREEN}start                     ${RESET}Starts the Docker machine
+  ${GREEN}restart                   ${RESET}Restarts the Docker machine
+  ${GREEN}pull                      ${RESET}Fetch latest images for the Docker containers
+  ${GREEN}list                      ${RESET}Lists Docker containers
+  ${GREEN}ssh [container]           ${RESET}Connect via SSH to the specified container
+  ${GREEN}info                      ${RESET}Displays info for your Docker machine
+  ${GREEN}destroy                   ${RESET}Removes the Docker machine
+  ${GREEN}fix                       ${RESET}Attempts to fix any SSL or NFS issues
+  ${GREEN}run <container> <command> ${RESET}Runs a command from within the specified container
 EOF
   exit
 }
@@ -61,7 +62,7 @@ echoSuccess () {
 }
 
 echoPending() {
-    echoZeus "${YELLOW}$1${RESET}"
+  echoZeus "${YELLOW}$1${RESET}"
 }
 
 echoAbort () {
@@ -127,7 +128,7 @@ ZEUS_SHELL=bash
 #ZEUS_DEFAULT_SSH_CONTAINER=
 EOL
 
-  echoSuccess "Created Zeusfile!"
+  echoSuccess "Created Zeusfile."
   exit
 }
 
@@ -194,7 +195,7 @@ dockerStart () {
 }
 
 dockerStop () {
-  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "Machine ${ZEUS_NAME} already off!"
+  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "Machine ${ZEUS_NAME} already off."
 
   dockerEvalEnv
 
@@ -208,7 +209,7 @@ dockerStop () {
 }
 
 dockerUp () {
-  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "Machine $ZEUS_NAME must be running!"
+  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "Machine $ZEUS_NAME must be running."
 
   dockerEvalEnv
 
@@ -218,7 +219,7 @@ dockerUp () {
 }
 
 dockerDown () {
-  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "Machine $ZEUS_NAME must be running!"
+  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "Machine $ZEUS_NAME must be running."
 
   dockerEvalEnv
 
@@ -281,7 +282,7 @@ dockerEnv () {
   docker-machine env "${ZEUS_NAME}"
 }
 
-dockerRun() {
+dockerRun () {
   [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "The docker-machine must be running."
 
   CONTAINER="$1"
@@ -309,6 +310,19 @@ dockerRun() {
   docker-compose run --rm ${CONTAINER} ${COMMAND}
 }
 
+dockerUpdate () {
+  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "The docker-machine must be running."
+
+  dockerEvalEnv
+
+  echoPending "Pulling latest images.."
+
+  docker-compose pull
+
+  echoZeus "${GREEN}All images up to date.${RESET}"
+  echoZeus "${GREEN}Run \`zeus reload\` to recreate the containers with the new images.${RESET}"
+}
+
 [ $# -eq 0 ] && usage
 
 [ "$1" == "init" ] && zeusInit
@@ -330,6 +344,8 @@ case "$1" in
     dockerStop && dockerStart ;;
   reload)
     dockerDown && dockerUp ;;
+  update|pull)
+    dockerUpdate ;;
   info)
     dockerInfo ;;
   list)
