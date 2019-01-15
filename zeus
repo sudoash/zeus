@@ -43,6 +43,14 @@ EOF
   exit
 }
 
+echoGreen () {
+  echoZeus "${GREEN}$1${RESET}"
+}
+
+echoRed () {
+  echoZeus "${RED}$1${RESET}"
+}
+
 echoBlank () {
   echo ""
 }
@@ -52,16 +60,16 @@ echoZeus () {
 }
 
 echoError () {
-  echoZeus "${RED}$1${RESET}"
+  echoRed "$1"
   echoBlank
 }
 
 echoSuccess () {
-  echoZeus "${GREEN}$1${RESET}"
+  echoGreen "$1"
   echoBlank
 }
 
-echoPending() {
+echoPending () {
   echoZeus "${YELLOW}$1${RESET}"
 }
 
@@ -319,8 +327,8 @@ dockerUpdate () {
 
   docker-compose pull
 
-  echoZeus "${GREEN}All images up to date.${RESET}"
-  echoZeus "${GREEN}Run \`zeus reload\` to recreate the containers with the new images.${RESET}"
+  echoGreen "All images up to date."
+  echoSuccess "Run \`zeus reload\` to recreate the containers with the new images."
 }
 
 [ $# -eq 0 ] && usage
