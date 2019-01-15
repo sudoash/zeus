@@ -69,7 +69,7 @@ echoAbort () {
 }
 
 checkMachineRunning () {
-  machine_state=$(docker-machine ls | sed 1d | grep "^$1\s" | awk '{print $4}')
+  machine_state=$(docker-machine status $1)
 
   if [ "Running" != "${machine_state}" ]; then
     echo "false"; return
