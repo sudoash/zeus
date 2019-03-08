@@ -37,6 +37,7 @@ ${YELLOW}Commands:${RESET}
   ${GREEN}ssh [container]           ${RESET}Connect via SSH to the specified container
   ${GREEN}info                      ${RESET}Displays info for your Docker machine
   ${GREEN}destroy                   ${RESET}Removes the Docker machine
+  ${GREEN}prune                     ${RESET}Removes exited containers
   ${GREEN}fix                       ${RESET}Attempts to fix any SSL or NFS issues
   ${GREEN}run <container> <command> ${RESET}Runs a command from within the specified container
 EOF
@@ -307,6 +308,12 @@ dockerFix () {
   dockerInfo
 }
 
+dockerPrune () {
+  [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "The docker-machine must be running."
+
+  docker-compose rm --force
+}
+
 dockerEnv () {
   [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "The docker-machine must be running."
 
@@ -385,6 +392,8 @@ case "$1" in
     dockerSsh "$2" ;;
   destroy)
     dockerMachineDestroy ;;
+  prune)
+    dockerPrune ;;
   fix)
     dockerFix ;;
   env)

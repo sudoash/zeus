@@ -57,6 +57,7 @@ Commands:
   ssh [container]         Connect via SSH to the specified container
   info                    Displays info for your Docker machine
   destroy                 Removes the Docker machine
+  prune                   Removes exited containers
   fix                     Attempts to fix any SSL or NFS issues
   run <service> <command> Runs a command from within the specified container
  ```
