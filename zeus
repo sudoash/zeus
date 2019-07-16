@@ -24,21 +24,22 @@ usage () {
 Usage: $0 <command>
 
 ${YELLOW}Commands:${RESET}
-  ${GREEN}init                      ${RESET}Initialises Zeus and creates a Zeusfile
-  ${GREEN}create                    ${RESET}Creates the Docker machine for the first time
-  ${GREEN}up                        ${RESET}Starts the Docker containers
-  ${GREEN}down                      ${RESET}Removes the Docker containers
-  ${GREEN}reload                    ${RESET}Recreates the Docker containers
-  ${GREEN}stop                      ${RESET}Stops the Docker machine
-  ${GREEN}start                     ${RESET}Starts the Docker machine
-  ${GREEN}restart                   ${RESET}Restarts the Docker machine
-  ${GREEN}pull                      ${RESET}Fetch latest images for the Docker containers
-  ${GREEN}list                      ${RESET}Lists Docker containers
-  ${GREEN}ssh [container]           ${RESET}Connect via SSH to the specified container
-  ${GREEN}info                      ${RESET}Displays info for your Docker machine
-  ${GREEN}destroy                   ${RESET}Removes the Docker machine
-  ${GREEN}fix                       ${RESET}Attempts to fix any SSL or NFS issues
-  ${GREEN}run <container> <command> ${RESET}Runs a command from within the specified container
+  ${GREEN}init                       ${RESET}Initialises Zeus and creates a Zeusfile
+  ${GREEN}create                     ${RESET}Creates the Docker machine for the first time
+  ${GREEN}up                         ${RESET}Starts the Docker containers
+  ${GREEN}down                       ${RESET}Removes the Docker containers
+  ${GREEN}reload                     ${RESET}Recreates the Docker containers
+  ${GREEN}stop                       ${RESET}Stops the Docker machine
+  ${GREEN}start                      ${RESET}Starts the Docker machine
+  ${GREEN}restart                    ${RESET}Restarts the Docker machine
+  ${GREEN}pull                       ${RESET}Fetch latest images for the Docker containers
+  ${GREEN}list                       ${RESET}Lists Docker containers
+  ${GREEN}ssh [container]            ${RESET}Connect via SSH to the specified container
+  ${GREEN}info                       ${RESET}Displays info for your Docker machine
+  ${GREEN}destroy                    ${RESET}Removes the Docker machine
+  ${GREEN}fix                        ${RESET}Attempts to fix any SSL or NFS issues
+  ${GREEN}run <container> <command>  ${RESET}Runs a command from within a new container
+  ${GREEN}exec <container> <command> ${RESET}Runs a command from within a running container
 EOF
   exit
 }
@@ -313,10 +314,15 @@ dockerEnv () {
   docker-machine env "${ZEUS_NAME}"
 }
 
-dockerRun () {
+dockerRunOrExec () {
   [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "The docker-machine must be running."
 
-  CONTAINER="$1"
+  RUN_OR_EXEC="$1"
+  if [[ -z "$RUN_OR_EXEC" ]]; then
+    echoAbort "You must specify one of run or exec"
+  fi
+
+  CONTAINER="$2"
   if [[ "$CONTAINER" == "" ]]; then
     CONTAINER=$(echo $ZEUS_DEFAULT_SSH_CONTAINER)
   fi
@@ -331,14 +337,22 @@ dockerRun () {
     echoAbort "Container $CONTAINER was not found."
   fi
 
-  COMMAND="$2"
+  COMMAND="$3"
   if [[ "$COMMAND" == "" ]]; then
     echoAbort "You must provide a command to run."
   fi
 
   echoPending "$CONTAINER >: $COMMAND"
 
-  docker-compose run --rm ${CONTAINER} ${COMMAND}
+  docker-compose ${RUN_OR_EXEC} ${CONTAINER} ${COMMAND}
+}
+
+dockerRun () {
+  dockerRunOrExec "run --rm" "$1" "$2"
+}
+
+dockerExec () {
+  dockerRunOrExec "exec" "$1" "$2"
 }
 
 dockerUpdate () {
@@ -394,6 +408,11 @@ case "$1" in
     args=$@
 
     dockerRun "$container" "$args" ;;
+  exec)
+    container=$2; shift; shift
+    args=$@
+
+    dockerExec "$container" "$args" ;;
   *)
     usage ;;
 esac
