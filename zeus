@@ -40,6 +40,7 @@ ${YELLOW}Commands:${RESET}
   ${GREEN}fix                        ${RESET}Attempts to fix any SSL or NFS issues
   ${GREEN}run <container> <command>  ${RESET}Runs a command from within a new container
   ${GREEN}exec <container> <command> ${RESET}Runs a command from within a running container
+  ${GREEN}logs <container>           ${RESET}Follows logs from a running container
 EOF
   exit
 }
