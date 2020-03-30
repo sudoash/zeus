@@ -41,6 +41,7 @@ ${YELLOW}Commands:${RESET}
   ${GREEN}run <container> <command>  ${RESET}Runs a command from within a new container
   ${GREEN}exec <container> <command> ${RESET}Runs a command from within a running container
   ${GREEN}logs <container>           ${RESET}Follows logs from a running container
+  ${GREEN}scripts                    ${RESET}Runs scripts in the zeus.d directory on the virtual machine
 EOF
   exit
 }
@@ -181,6 +182,25 @@ dockerMachineDestroy () {
   unset ZEUS_MACHINE_ACTIVE
 }
 
+dockerScripts () {
+  if [[ -d "zeus.d" ]]; then
+    echoPending "Executing run scripts."
+    docker-machine scp -r zeus.d ${ZEUS_NAME}:
+    # find zeus.d -type f -exec docker-machine ssh ${ZEUS_NAME} "{}" \;
+    for script in zeus.d/*; do
+      echoPending $script
+      docker-machine ssh ${ZEUS_NAME} "sh $script"
+      if [[ $? != 0 ]]; then
+        echoError "Failed."
+        return 9
+      fi
+    done
+    echoSuccess "Done."
+  else
+    echoPending "No run scripts detected. Are you missing zeus.d?"
+  fi
+}
+
 dockerCreate () {
   echoPending "Creating new Docker environment.."
 
@@ -203,6 +223,11 @@ dockerCreate () {
   docker-machine-nfs ${ZEUS_NAME} -s="$PWD"
 
   dockerInfo
+
+
+  if [[ -d "zeus.d" ]]; then
+    dockerScripts
+  fi
 
   read -p "Would you like to automatically add this to your hosts file? (y/n) " HOSTS_AUTO_UPDATE
   case "$HOSTS_AUTO_UPDATE" in
@@ -428,6 +453,8 @@ case "$1" in
     dockerExec "$container" "$args" ;;
   logs)
     dockerLogs "$2" ;;
+  scripts)
+    dockerScripts ;;
   *)
     usage ;;
 esac
