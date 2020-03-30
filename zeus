@@ -101,6 +101,7 @@ setPropDefaults () {
   [ -z "$ZEUS_DOMAIN" ] && echoAbort "Please set ZEUS_DOMAIN in Zeusfile or ENV."
   [ -z "$ZEUS_SHELL" ] && ZEUS_SHELL="bash";
   [ -z "$ZEUS_VIRTUALBOX_MEMORY" ] && ZEUS_VIRTUALBOX_MEMORY="1024"
+  [ -z "$ZEUS_VIRTUALBOX_CPU_COUNT" ] && ZEUS_VIRTUALBOX_CPU_COUNT="1"
 
   [ "$(checkMachineRunning ${ZEUS_NAME})" = "true" ] && {
     ZEUS_MACHINE_RUNNING="true"
@@ -214,7 +215,10 @@ dockerCreate () {
     echoPending "Creating $ZEUS_NAME with IP address $ZEUS_STATIC_IP."
   }
 
-  docker-machine create --driver virtualbox --virtualbox-memory ${ZEUS_VIRTUALBOX_MEMORY} ${ZEUS_NAME}
+  docker-machine create --driver virtualbox \
+    --virtualbox-memory ${ZEUS_VIRTUALBOX_MEMORY} \
+    --virtualbox-cpu-count ${ZEUS_VIRTUALBOX_CPU_COUNT} \
+    ${ZEUS_NAME}
 
   [ ! -z "$ZEUS_STATIC_IP" ] && {
     docker-machine-ipconfig static ${ZEUS_NAME} ${ZEUS_STATIC_IP}
@@ -222,12 +226,11 @@ dockerCreate () {
 
   docker-machine-nfs ${ZEUS_NAME} -s="$PWD"
 
-  dockerInfo
-
-
   if [[ -d "zeus.d" ]]; then
     dockerScripts
   fi
+
+  dockerInfo
 
   read -p "Would you like to automatically add this to your hosts file? (y/n) " HOSTS_AUTO_UPDATE
   case "$HOSTS_AUTO_UPDATE" in
