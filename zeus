@@ -40,6 +40,7 @@ ${YELLOW}Commands:${RESET}
   ${GREEN}fix                        ${RESET}Attempts to fix any SSL or NFS issues
   ${GREEN}run <container> <command>  ${RESET}Runs a command from within a new container
   ${GREEN}exec <container> <command> ${RESET}Runs a command from within a running container
+  ${GREEN}logs <container>           ${RESET}Follows logs from a running container
 EOF
   exit
 }
@@ -314,12 +315,12 @@ dockerEnv () {
   docker-machine env "${ZEUS_NAME}"
 }
 
-dockerRunOrExec () {
+dockerCmd () {
   [ -z "$ZEUS_MACHINE_RUNNING" ] && echoAbort "The docker-machine must be running."
 
-  RUN_OR_EXEC="$1"
-  if [[ -z "$RUN_OR_EXEC" ]]; then
-    echoAbort "You must specify one of run or exec"
+  DOCKER_COMPOSE_COMMAND="$1"
+  if [[ -z "$DOCKER_COMPOSE_COMMAND" ]]; then
+    echoAbort "You must specify a docker-compose command."
   fi
 
   CONTAINER="$2"
@@ -337,6 +338,14 @@ dockerRunOrExec () {
     echoAbort "Container $CONTAINER was not found."
   fi
 
+  if [[ "$DOCKER_COMPOSE_COMMAND" == *"logs"* ]]; then
+    echoPending "$CONTAINER >: logs"
+
+    docker-compose ${DOCKER_COMPOSE_COMMAND} ${CONTAINER}
+
+    return
+  fi
+
   COMMAND="$3"
   if [[ "$COMMAND" == "" ]]; then
     echoAbort "You must provide a command to run."
@@ -344,15 +353,19 @@ dockerRunOrExec () {
 
   echoPending "$CONTAINER >: $COMMAND"
 
-  docker-compose ${RUN_OR_EXEC} ${CONTAINER} ${COMMAND}
+  docker-compose ${DOCKER_COMPOSE_COMMAND} ${CONTAINER} ${COMMAND}
 }
 
 dockerRun () {
-  dockerRunOrExec "run --rm" "$1" "$2"
+  dockerCmd "run --rm" "$1" "$2"
 }
 
 dockerExec () {
-  dockerRunOrExec "exec" "$1" "$2"
+  dockerCmd "exec" "$1" "$2"
+}
+
+dockerLogs () {
+  dockerCmd "logs -f" "$1"
 }
 
 dockerUpdate () {
@@ -413,6 +426,8 @@ case "$1" in
     args=$@
 
     dockerExec "$container" "$args" ;;
+  logs)
+    dockerLogs "$2" ;;
   *)
     usage ;;
 esac
