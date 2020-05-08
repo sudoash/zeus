@@ -40,25 +40,30 @@ ZEUS_SHELL=bash
 ## Usage
 ```
 zeus - the utility wrapper for docker, docker-compose, docker-machine and docker-machine-nfs
-zeus version 1.1.0
+zeus version 1.2.0
 
 Usage: /usr/local/bin/zeus <command>
 
 Commands:
-  init                    Initialises Zeus and creates a Zeusfile
-  create                  Creates the Docker machine for the first time
-  up                      Starts the Docker containers
-  down                    Removes the Docker containers
-  reload                  Recreates the Docker containers
-  stop                    Stops the Docker machine
-  start                   Starts the Docker machine
-  restart                 Restarts the Docker machine
-  list                    Lists Docker containers
-  ssh [container]         Connect via SSH to the specified container
-  info                    Displays info for your Docker machine
-  destroy                 Removes the Docker machine
-  fix                     Attempts to fix any SSL or NFS issues
-  run <service> <command> Runs a command from within the specified container
+  init                       Initialises Zeus and creates a Zeusfile
+  create                     Creates the Docker machine for the first time
+  up                         Starts the Docker containers
+  down                       Removes the Docker containers
+  reload                     Recreates the Docker containers
+  stop                       Stops the Docker machine
+  start                      Starts the Docker machine
+  restart                    Restarts the Docker machine
+  pull                       Fetch latest images for the Docker containers
+  list                       Lists Docker containers
+  ssh [container]            Connect via SSH to the specified container
+  info                       Displays info for your Docker machine
+  destroy                    Removes the Docker machine
+  fix                        Attempts to fix any SSL or NFS issues
+  run <container> <command>  Runs a command from within a new container
+  exec <container> <command> Runs a command from within a running container
+  logs <container>           Follows logs from a running container
+  top                        Displays CPU, memory, network and disk IO for running containers
+  scripts                    Runs scripts in the zeus.d directory on the virtual machine
  ```
 
 ## Todos
