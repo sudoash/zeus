@@ -41,6 +41,7 @@ ${YELLOW}Commands:${RESET}
   ${GREEN}run <container> <command>  ${RESET}Runs a command from within a new container
   ${GREEN}exec <container> <command> ${RESET}Runs a command from within a running container
   ${GREEN}logs <container>           ${RESET}Follows logs from a running container
+  ${GREEN}scripts                    ${RESET}Runs scripts in the zeus.d directory on the virtual machine
 EOF
   exit
 }
@@ -100,6 +101,7 @@ setPropDefaults () {
   [ -z "$ZEUS_DOMAIN" ] && echoAbort "Please set ZEUS_DOMAIN in Zeusfile or ENV."
   [ -z "$ZEUS_SHELL" ] && ZEUS_SHELL="bash";
   [ -z "$ZEUS_VIRTUALBOX_MEMORY" ] && ZEUS_VIRTUALBOX_MEMORY="1024"
+  [ -z "$ZEUS_VIRTUALBOX_CPU_COUNT" ] && ZEUS_VIRTUALBOX_CPU_COUNT="1"
 
   [ "$(checkMachineRunning ${ZEUS_NAME})" = "true" ] && {
     ZEUS_MACHINE_RUNNING="true"
@@ -181,6 +183,25 @@ dockerMachineDestroy () {
   unset ZEUS_MACHINE_ACTIVE
 }
 
+dockerScripts () {
+  if [[ -d "zeus.d" ]]; then
+    echoPending "Executing run scripts."
+    docker-machine scp -r zeus.d ${ZEUS_NAME}:
+    # find zeus.d -type f -exec docker-machine ssh ${ZEUS_NAME} "{}" \;
+    for script in zeus.d/*; do
+      echoPending $script
+      docker-machine ssh ${ZEUS_NAME} "sh $script"
+      if [[ $? != 0 ]]; then
+        echoError "Failed."
+        return 9
+      fi
+    done
+    echoSuccess "Done."
+  else
+    echoPending "No run scripts detected. Are you missing zeus.d?"
+  fi
+}
+
 dockerCreate () {
   echoPending "Creating new Docker environment.."
 
@@ -194,13 +215,20 @@ dockerCreate () {
     echoPending "Creating $ZEUS_NAME with IP address $ZEUS_STATIC_IP."
   }
 
-  docker-machine create --driver virtualbox --virtualbox-memory ${ZEUS_VIRTUALBOX_MEMORY} ${ZEUS_NAME}
+  docker-machine create --driver virtualbox \
+    --virtualbox-memory ${ZEUS_VIRTUALBOX_MEMORY} \
+    --virtualbox-cpu-count ${ZEUS_VIRTUALBOX_CPU_COUNT} \
+    ${ZEUS_NAME}
 
   [ ! -z "$ZEUS_STATIC_IP" ] && {
     docker-machine-ipconfig static ${ZEUS_NAME} ${ZEUS_STATIC_IP}
   }
 
   docker-machine-nfs ${ZEUS_NAME} -s="$PWD"
+
+  if [[ -d "zeus.d" ]]; then
+    dockerScripts
+  fi
 
   dockerInfo
 
@@ -428,6 +456,8 @@ case "$1" in
     dockerExec "$container" "$args" ;;
   logs)
     dockerLogs "$2" ;;
+  scripts)
+    dockerScripts ;;
   *)
     usage ;;
 esac
