@@ -1,3 +1,5 @@
+# DEPRECATED: This project has been retired due to it no longer being a helpful utility in modern Docker setups.
+
 # Zeus
 
 Zeus is a utility wrapper for Docker on macOS / OS X. It combines [docker](https://docs.docker.com), [docker-compose](https://docs.docker.com/compose/), [docker-machine](https://docs.docker.com/machine/) and [docker-machine-nfs](https://github.com/adlogix/docker-machine-nfs).
